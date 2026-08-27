@@ -1,11 +1,10 @@
-# proteomics_analysis
+# Tools for proteomics data analysis
 
 General-purpose methods for analyzing proteomics data, independent of any single
 study. This package covers three stages of analysis:
 
 1. **GLM fitting per assay** (`proteomics_analysis.glm`) — fit one GLM per
-   protein/assay for a user-supplied formula and family, and compute
-   arbitrary linear contrasts of the fitted coefficients via the delta
+   protein/assay for a user-supplied formula and family, identify DEGs and compute linear contrasts of the fitted coefficients via the delta
    method.
 2. **Gene set enrichment analysis** (`proteomics_analysis.gsea`) — run
    preranked GSEA against one or more `.gmt` gene-set collections, given a
