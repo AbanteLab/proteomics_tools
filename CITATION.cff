@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "proteomics_tools"
+abstract: >-
+  General-purpose methods for analyzing proteomics data: GLM fitting,
+  delta-method contrasts, GSEA, volcano plots, PCA.
+type: software
+version: 1.0.0
+date-released: "2026-08-27"
+license: MIT
+repository-code: "https://github.com/AbanteLab/proteomics_tools"
+url: "https://github.com/AbanteLab/proteomics_tools"
+keywords:
+  - proteomics
+  - GLM
+  - GSEA
+  - PCA
+  - volcano plots
+authors:
+  - given-names: Berta
+    family-names: Ros
+    email: "bertaros@ub.edu"
+    affiliation: >-
+      Departament de Biomedicina, Facultat de Medicina, Universitat de
+      Barcelona, 08036 Barcelona, Spain; Institut de Neurociències,
+      Universitat de Barcelona, 08036 Barcelona, Spain; IDIBAPS; CIBERNED
