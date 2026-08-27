@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/proteomics_analysis/__init__.py
+src/proteomics_analysis/glm.py
+src/proteomics_analysis/gsea.py
+src/proteomics_analysis/plotting.py
+src/proteomics_analysis/stats_utils.py
+src/proteomics_analysis.egg-info/PKG-INFO
+src/proteomics_analysis.egg-info/SOURCES.txt
+src/proteomics_analysis.egg-info/dependency_links.txt
+src/proteomics_analysis.egg-info/requires.txt
+src/proteomics_analysis.egg-info/top_level.txt
+tests/test_glm.py
+tests/test_stats_utils.py
