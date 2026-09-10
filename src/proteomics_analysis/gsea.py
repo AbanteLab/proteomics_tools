@@ -83,35 +83,44 @@ def run_gsea(
     sig_results_collections = []
 
     for coll in collections:
-        gmt_file = os.path.join(gmt_dir, gmt_filename_template.format(collection=coll))
-        gmt = read_gmt(gmt_file)
+        csv_path = os.path.join(out_dir, f"{base}_gsea_{coll}_full_results.csv")
 
-        gmt_filt = {}
-        for gene_set, genes_in_set in gmt.items():
-            n_overlap = len(set(genes_in_set) & background_genes)
-            if n_overlap >= min_overlap:
-                gmt_filt[gene_set] = genes_in_set
+        if os.path.exists(csv_path):
+            # Results already computed on a previous run -- reuse them and go
+            # straight to plotting instead of re-running the permutation test.
+            print(f"Reusing existing GSEA results for {base} ({coll}): {csv_path}")
+            res_df = pd.read_csv(csv_path, index_col=0)
+        else:
+            gmt_file = os.path.join(gmt_dir, gmt_filename_template.format(collection=coll))
+            gmt = read_gmt(gmt_file)
 
-        if not gmt_filt:
-            print(f"No gene sets with >= {min_overlap} overlapping genes for {base} ({coll}), skipping.")
-            continue
+            gmt_filt = {}
+            for gene_set, genes_in_set in gmt.items():
+                n_overlap = len(set(genes_in_set) & background_genes)
+                if n_overlap >= min_overlap:
+                    gmt_filt[gene_set] = genes_in_set
 
-        pre_res = gp.prerank(
-            rnk=rnk_path,
-            gene_sets=gmt_filt,
-            permutation_num=permutation_num,
-            outdir=None,
-            seed=seed,
-            min_size=min_size,
-            max_size=max_size,
-        )
+            if not gmt_filt:
+                print(f"No gene sets with >= {min_overlap} overlapping genes for {base} ({coll}), skipping.")
+                continue
 
-        res_df = pre_res.res2d
-        res_df["collection"] = coll
+            pre_res = gp.prerank(
+                rnk=rnk_path,
+                gene_sets=gmt_filt,
+                permutation_num=permutation_num,
+                outdir=None,
+                seed=seed,
+                min_size=min_size,
+                max_size=max_size,
+            )
+
+            res_df = pre_res.res2d
+            res_df["collection"] = coll
+
+            res_df.to_csv(csv_path)
+            res_df.to_excel(os.path.join(out_dir, f"{base}_gsea_{coll}_full_results.xlsx"))
+
         results_collections.append(res_df)
-
-        res_df.to_csv(os.path.join(out_dir, f"{base}_gsea_{coll}_full_results.csv"))
-        res_df.to_excel(os.path.join(out_dir, f"{base}_gsea_{coll}_full_results.xlsx"))
 
         sig_df = res_df[res_df["FDR q-val"] < cutoff].copy()
         sig_df = sig_df.sort_values("NES", ascending=False)
@@ -124,9 +133,11 @@ def run_gsea(
         sig_results_collections.append(sig_df)
 
         if make_plots:
+            # sig_df is already sorted by NES descending; cap the dotplot at the
+            # top_n_plot highest-NES pathways rather than showing every hit.
             _save_dotplot(
-                sig_df,
-                title=coll,
+                sig_df.head(top_n_plot),
+                title=f"{coll} (top {top_n_plot} by NES)",
                 out_path=os.path.join(out_dir, f"{base}_gsea_{coll}_dotplot.png"),
                 cutoff=cutoff,
             )
@@ -146,6 +157,11 @@ def run_gsea(
     if make_plots and not gsea_results_all.empty:
         plot_df = gsea_results_all.copy()
         plot_df["FDR q-val"] = plot_df["FDR q-val"].replace(0, np.nextafter(0, 1))
+        # Restrict to significant terms before picking the top_n_plot to show.
+        # gseapy's dotplot re-applies `cutoff` on "FDR q-val" anyway, but doing
+        # it here means head(top_n_plot) selects from significant terms only
+        # (rather than top-FDR terms that might then all be dropped at render).
+        plot_df = plot_df[plot_df["FDR q-val"] < cutoff]
         top_terms = plot_df.sort_values("FDR q-val").head(top_n_plot)
         if not top_terms.empty:
             _save_dotplot(
